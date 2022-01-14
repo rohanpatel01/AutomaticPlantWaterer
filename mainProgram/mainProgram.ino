@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Stepper.h>
-#include <Vector.h>
 
 
 
@@ -28,15 +27,14 @@ int start;
 int maxWaterLevel = 0;
 int waterVal = 0;
 int numberValuesRead = 0;
+bool boolWait3Seconds = false;
+bool checkPlacedInSoil = true;
 
-
-//vector<int> highestAverageMoistureLevel;
-
-
+int highestAverageMoisture[60];
 
 void setup() 
 {
-    
+
     pinMode(waterInputPin, INPUT); // The Water Sensor is an Input
     Serial.begin(9600);
     Serial.println("Starting System");
@@ -54,7 +52,9 @@ void setup()
 
 void loop() 
 {
-    findHighestAverageWaterLevel();
+    initialSetup();
+
+    
     readWaterVal();
 
     //motorControl();
@@ -68,52 +68,51 @@ void loop()
 
 // find highest water value
 
-int findHighestAverageWaterLevel()
+int initialSetup()
 {
   // if a water level is detected and it's the first time program is being started
   // start process to wait 3 seconds and then read values for highest average
-  if(waterVal > 50  && initialWaterReading)
-  {
-     boolInitialWaitOnUser = true;
-     // starting the time. should only call once
-     start = millis();
-     Serial.println("Placed in soil");
-     initialWaterReading = false;
-  }
 
-  
-  // after water value is read 
-  // and water sensor is placed in soil
-  // wait 3 seconds to give time to get accurate average highest
-  if(boolInitialWaitOnUser)
+  if(initialWaterReading)
   {
-     //wait 3 seconds till reading average
-     if(millis() - start >= waitBeforeReadTime)
-     {
+    // if placed in soil start initial setup
+
+    if(waterVal > 30 && checkPlacedInSoil)
+    {
+      Serial.println("Placed in soil");
+      start = millis();
+      checkPlacedInSoil = false;
+      boolWait3Seconds =  true;
+    }
+    
+    
+    //wait 3 seconds till reading average
+    if(millis() - start >= waitBeforeReadTime && boolWait3Seconds)
+    {
         Serial.println("3 seconds have passed - starting soil reading");
-        boolInitialWaitOnUser = false; 
-            
-     }
+        boolWait3Seconds = false;        
+    }
 
-    // include code that will gather average from user
-    // read water value every 3 seconds for 1 minute to find average highest value
+    // start reading initial values
 
-    // have initial array
 
-    // when new value is found raise new array value to that
 
-    // copy information from old array into new array
+    
 
-    // continue process until 1 miniute has passed
+        
+    //initialWaterReading = false;
+
+
+   
+   }// end of initialWaterReading
+
 
     
     
-
-    
-  }
+}// end of method
        
   
-}
+
 
 
 void motorControl()
@@ -126,13 +125,12 @@ void motorControl()
 
 int readWaterVal()
 {
+
+  
     waterVal = analogRead(waterInputPin);
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print(waterVal);
-    //Serial.print("Water Value");
-    //Serial.println(waterVal);
-    //delay(250);
+
+
+    // can put code that reads value every hour here
 
     
   

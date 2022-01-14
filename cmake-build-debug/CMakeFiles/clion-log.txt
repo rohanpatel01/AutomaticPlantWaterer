@@ -1,0 +1,5 @@
+"D:\The Folder of Downloads\CLion 2021.3.2\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=D:/The Folder of Downloads/CLion 2021.3.2/bin/ninja/win/ninja.exe" -G Ninja "C:\Users\rohan\OneDrive\Desktop\Git Repo\AutoPlant"
+-- Configuring done
+CMake Error: CMake can not determine linker language for target: AutoPlant
+-- Generating done
+CMake Generate step failed.  Build files cannot be regenerated correctly.
