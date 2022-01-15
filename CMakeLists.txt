@@ -3,8 +3,8 @@ project(AutoPlant)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(${mainProgram}_BOARD uno)
-set(${mainProgram}_PORT COM3)
+set(${CMAKE_mainProgram}_BOARD uno)
+set(${CMAKE_mainProgram}_PORT COM3 (Arduino Uno))
 
 
 include_directories(.)
@@ -12,3 +12,5 @@ include_directories(mainProgram)
 
 add_executable(AutoPlant
         mainProgram/mainProgram.ino)
+
+

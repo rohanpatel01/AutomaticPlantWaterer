@@ -33,8 +33,9 @@ bool checkPlacedInSoil = true;
 int eventInterval = 1000; // initial setup will measure every second
 int highestAverageMoisture[60];
 bool boolReadData = false;
-int totalScanLength = 60000; // scan will last 60 seconds
-int index = 0;
+int totalScanLength = 60; // in seconds
+int arrayIndex = 0;
+int timePassed = 0;
 
 void setup() 
 {
@@ -56,8 +57,9 @@ void setup()
 
 void loop() 
 {
-    initialSetup();
 
+  
+    initialSetup();
     
     readWaterVal();
 
@@ -103,47 +105,27 @@ int initialSetup()
     // will need 2 start times then
 
     long currentTime = millis();
- 
-    // while the program has been running for less than 60 seconds
-    // run scan for 60 s
 
-    /*
-     * Issue: Issue with making scan last for 60 s. Doesn't even let you 
-     * see if it's placed in the soil. See how it interacts with those 
-     * variables
-     * 
-     * Scanning every second works, but need to fix making that last
-     * for only 60 seconds with the millis() function
-     */
-    
-    while(millis() - beginScan <= totalScanLength ) // issue
+    if(currentTime - start >= eventInterval && boolReadData && timePassed < totalScanLength)
     {
-      // check value every 60 s
-      if(currentTime - start >= eventInterval && boolReadData)
-      {
-          //highestAverageMoisture[index] = waterVal;
-//          Serial.println(highestAverageMoisture[index]);
-//          index++;
+       Serial.println(waterVal);
+//       highestAverageMoisture[arrayIndex] = waterVal;
+//       arrayIndex++;
+       
+       start = millis();  
+       timePassed++;
 
-           Serial.println(waterVal);
-          start = currentTime;
-      }
 
+       // find average  
     }
 
-    //Serial.println("Scan complete");
-
-    // print array
-
-//    for(int x = 0; x < highestAverageMoisture.length; x++)
+//    for(int x = 0; x < sizeof(highestAverageMoisture); x ++)
 //    {
 //      Serial.print(highestAverageMoisture[x]);
 //      Serial.print(", ");
-//
 //    }
-    
-
-        
+//    
+    //boolReadData = false;
     //initialWaterReading = false;
 
 
@@ -169,14 +151,8 @@ void motorControl()
 
 int readWaterVal()
 {
-
-  
     waterVal = analogRead(waterInputPin);
-
-
     // can put code that reads value every hour here
-
-    
   
 }
 
