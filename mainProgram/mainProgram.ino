@@ -31,11 +31,14 @@ int numberValuesRead = 0;
 bool boolWait3Seconds = false;
 bool checkPlacedInSoil = true;
 int eventInterval = 1000; // initial setup will measure every second
-int highestAverageMoisture[60];
+const int totalScanLength = 5; // original 60 seconds
+int highestAverageMoisture[totalScanLength];
 bool boolReadData = false;
-int totalScanLength = 60; // in seconds
+bool boolFindHighestAverage = false;
+
 int arrayIndex = 0;
 int timePassed = 0;
+
 
 void setup() 
 {
@@ -57,10 +60,8 @@ void setup()
 
 void loop() 
 {
-
   
     initialSetup();
-    
     readWaterVal();
 
     //motorControl();
@@ -106,28 +107,74 @@ int initialSetup()
 
     long currentTime = millis();
 
+    //  && timePassed < totalScanLength
     if(currentTime - start >= eventInterval && boolReadData && timePassed < totalScanLength)
     {
-       Serial.println(waterVal);
-//       highestAverageMoisture[arrayIndex] = waterVal;
-//       arrayIndex++;
+
+      /*
+         We need totalScanLength - 1 b/c we want to find average when time is over
+         but we can't turn this off and turn next on b/c parameter to end scan 
+         is with other parameters. So we end scan early then get the last value
+         before we leave this loop
+       */
        
-       start = millis();  
-       timePassed++;
+       if(timePassed < totalScanLength - 1)
+       {
+          Serial.println(waterVal);
+          highestAverageMoisture[arrayIndex] = waterVal;
+          arrayIndex++;
+       
+          start = millis();  
+          timePassed++; 
 
+         // when scan is over
+       } else {
+          // get the last value
+          Serial.println(waterVal);
+          highestAverageMoisture[arrayIndex] = waterVal;
+          arrayIndex++;
+       
+          start = millis();  
+          timePassed++; 
 
-       // find average  
+          // end scan and find average
+          boolReadData = false;
+          boolFindHighestAverage = true;
+       }
     }
 
-//    for(int x = 0; x < sizeof(highestAverageMoisture); x ++)
-//    {
-//      Serial.print(highestAverageMoisture[x]);
-//      Serial.print(", ");
-//    }
-//    
-    //boolReadData = false;
-    //initialWaterReading = false;
+    
+    // if scan is complete. find average
+    if(boolFindHighestAverage)
+    {
+      Serial.println("Find average");
 
+      
+//      for(int x = 0; x < sizeof(highestAverageMoisture); x++)
+//      {
+//        Serial.print(highestAverageMoisture[x]);
+//        Serial.println(", ");
+//      }
+      
+      boolFindHighestAverage = false;
+      initialWaterReading = false;
+
+
+    }
+//    if(boolFindHighestAverage)
+//    {
+//      
+//      for(int x = 0; x < sizeof(highestAverageMoisture); x ++)
+//      {
+//        Serial.print(highestAverageMoisture[x]);
+//        Serial.println(", ");
+//      }
+//      
+//      boolFindHighestAverage = false;
+//    }
+
+    
+    
 
    
    }// end of initialWaterReading
