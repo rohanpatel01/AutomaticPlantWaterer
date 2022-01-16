@@ -65,15 +65,19 @@ void loop()
     readWaterVal();
 
     //motorControl();
-
-
-    
       
 } // end of loop
 
 
 
 // find highest water value
+
+/*
+ * Later condense this by making each part of this function it's own method
+ * That way you don't need to turn things on and off. You can just call the 
+ * initialSetup() once in the loop or something (might not work so try it)
+ */
+
 
 int initialSetup()
 {
@@ -149,31 +153,19 @@ int initialSetup()
     {
       Serial.println("Find average");
 
-      
-//      for(int x = 0; x < sizeof(highestAverageMoisture); x++)
-//      {
-//        Serial.print(highestAverageMoisture[x]);
-//        Serial.println(", ");
-//      }
-      
+      for(int x = 0; x < sizeof(highestAverageMoisture); x++)
+      {
+        Serial.println(highestAverageMoisture[x]);
+      }
+
+      Serial.println("average done");
+      Serial.println(sizeof(highestAverageMoisture));
       boolFindHighestAverage = false;
       initialWaterReading = false;
 
 
     }
-//    if(boolFindHighestAverage)
-//    {
-//      
-//      for(int x = 0; x < sizeof(highestAverageMoisture); x ++)
-//      {
-//        Serial.print(highestAverageMoisture[x]);
-//        Serial.println(", ");
-//      }
-//      
-//      boolFindHighestAverage = false;
-//    }
 
-    
     
 
    
