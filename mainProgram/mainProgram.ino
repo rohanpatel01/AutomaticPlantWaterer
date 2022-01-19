@@ -22,22 +22,32 @@ LiquidCrystal_I2C lcd (0x27, 16, 2);
 // variables for program
 bool initialWaterReading = true;
 bool boolInitialWaitOnUser = false;
-int waitBeforeReadTime = 3000;
 int start;
 long beginScan;
+const int totalScanLength = 10; // original 60 seconds
+int waitBeforeReadTime = 3000;
 int maxWaterLevel = 0;
 int waterVal = 0;
 int numberValuesRead = 0;
 bool boolWait3Seconds = false;
 bool checkPlacedInSoil = true;
 int eventInterval = 1000; // initial setup will measure every second
-const int totalScanLength = 5; // original 60 seconds
 int highestAverageMoisture[totalScanLength];
 bool boolReadData = false;
 bool boolFindHighestAverage = false;
+int averageSum = 0;
+int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture[0]);
+
 
 int arrayIndex = 0;
 int timePassed = 0;
+
+// moisture levels
+int fullSaturation = 0;
+int threeFourthSaturation = 0;
+int halfSaturation = 0;
+int dryBoi = 0;
+
 
 
 void setup() 
@@ -62,7 +72,9 @@ void loop()
 {
   
     initialSetup();
-    readWaterVal();
+    waterVal = analogRead(waterInputPin);
+
+    
 
     //motorControl();
       
@@ -81,9 +93,6 @@ void loop()
 
 int initialSetup()
 {
-  
-  // if a water level is detected and it's the first time program is being started
-  // start process to wait 3 seconds and then read values for highest average
 
   if(initialWaterReading)
   {
@@ -147,55 +156,74 @@ int initialSetup()
        }
     }
 
-    
     // if scan is complete. find average
     if(boolFindHighestAverage)
     {
       Serial.println("Find average");
 
-      for(int x = 0; x < sizeof(highestAverageMoisture); x++)
-      {
-        Serial.println(highestAverageMoisture[x]);
-      }
+      // see if need global variable
+      
 
-      Serial.println("average done");
-      Serial.println(sizeof(highestAverageMoisture));
+      for(int x = 0; x < arrayLength; x++)
+      {
+          averageSum += highestAverageMoisture[x];
+      }
+      
+      Serial.print("Average : ");
+      Serial.println(averageSum / arrayLength);
+
+      createLevelsOfMoisture(averageSum / arrayLength);
+      
       boolFindHighestAverage = false;
       initialWaterReading = false;
-
-
     }
-
-    
-
-   
    }// end of initialWaterReading
+   
+}// end of initialSetup
 
+void createLevelsOfMoisture(int average)
+{
+    fullSaturation = average;
+    threeFourthSaturation = average * 0.75;
+    halfSaturation = average / 2;
+    dryBoi = average / 5;
 
-    
-    
-}// end of method
-       
-  
+    // marks start of routine moisture check
+    start = millis();
+}
+
+// during regular moisture check, this method will be called
+// to see if water is necessary
+
+//void checkMoisture()
+//{
+//  // for mat will be like this but times need to be fixed
+//
+//   long currentTime = millis();
+//   
+//   if(currentTime - start >= eventInterval && boolReadData && timePassed < totalScanLength)
+//   {
+//      // see if need to water
+//      // waterNeeded = true;
+//      start = currentTime;
+//   }
+//}
+//
+
 
 
 
 void motorControl()
 {
+  // if (waterNeeded) : motor move to allow water and turn off after x seconds
+  
   Serial.println("clockwise full");
   stepper.step(stepsPerRev);
   delay(500);
   
 }
 
-int readWaterVal()
-{
-    waterVal = analogRead(waterInputPin);
-    // can put code that reads value every hour here
-  
-}
-
-int setMoistureLevelsFromAverage(int average)
-{
-  return 0;
-}
+//int readWaterVal()
+//{
+//    waterVal = analogRead(waterInputPin);  
+//}
