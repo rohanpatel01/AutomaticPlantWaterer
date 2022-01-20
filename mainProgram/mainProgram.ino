@@ -3,7 +3,12 @@
 #include <LiquidCrystal_I2C.h>
 #include <Stepper.h>
 
-
+/*
+ * Use a photo resistor to measure when the user puts the water sensor 
+ * in the soil. This way we don't have to wait 3 seconds and all that.
+ * All we have to do is wait until the sensor tells us that it's dark
+ * and then we can find the average like normal.
+ */
 
 //set up pins
 int waterInputPin = A0;
@@ -74,7 +79,7 @@ void loop()
     waterVal = analogRead(waterInputPin);
 
     
-    checkMoisture();
+    //checkMoisture();
     
     
     //motorControl();
@@ -123,14 +128,10 @@ void checkMoisture()
 }
 
 
-
-
 int initialSetup()
 {
-
   if(initialWaterReading)
   {
-
     if(waterVal > 30 && checkPlacedInSoil)
     {
       Serial.println("Placed in soil");
