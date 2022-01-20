@@ -42,7 +42,6 @@ int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture
 int arrayIndex = 0;
 int timePassed = 0;
 
-// moisture levels
 int fullSaturation = 0;
 int threeFourthSaturation = 0;
 int halfSaturation = 0;
@@ -75,9 +74,11 @@ void loop()
     waterVal = analogRead(waterInputPin);
 
     
-
+    checkMoisture();
+    
+    
     //motorControl();
-      
+    
 } // end of loop
 
 
@@ -89,6 +90,39 @@ void loop()
  * That way you don't need to turn things on and off. You can just call the 
  * initialSetup() once in the loop or something (might not work so try it)
  */
+
+// during regular moisture check, this method will be called
+// to see if water is necessary
+
+void checkMoisture()
+{
+  // for mat will be like this but times need to be fixed
+
+   long currentTime = millis();
+
+   // scan for 1 min, getting data every second. Scan happends every 1 hour
+   // need more code to keep with this timing ^ 
+   if(currentTime - start >= eventInterval && timePassed < totalScanLength)
+   {
+      // see if need to water
+      // waterNeeded = true
+
+      
+      
+      
+      timePassed++;
+      start = currentTime;
+
+     
+   }else if (timePassed > totalScanLength)
+   {
+      timePassed = 0;
+   }
+    
+   
+}
+
+
 
 
 int initialSetup()
@@ -115,15 +149,9 @@ int initialSetup()
         beginScan = millis();
     }
 
-    // start reading initial values. Every second for 60 seconds
-    // will need 2 start times then
-
     long currentTime = millis();
-
-    //  && timePassed < totalScanLength
     if(currentTime - start >= eventInterval && boolReadData && timePassed < totalScanLength)
     {
-
       /*
          We need totalScanLength - 1 b/c we want to find average when time is over
          but we can't turn this off and turn next on b/c parameter to end scan 
@@ -176,10 +204,22 @@ int initialSetup()
       
       boolFindHighestAverage = false;
       initialWaterReading = false;
+      
+      // need to reset millis for the routine moisture check
+      start = millis();
+
+      // reset time passed and change scan length to 1 hour for routine scan
+      
+      timePassed = 0;
+      totalScanLength = 3600;
+      
     }
    }// end of initialWaterReading
+
+   
    
 }// end of initialSetup
+
 
 void createLevelsOfMoisture(int average)
 {
@@ -191,24 +231,6 @@ void createLevelsOfMoisture(int average)
     // marks start of routine moisture check
     start = millis();
 }
-
-// during regular moisture check, this method will be called
-// to see if water is necessary
-
-//void checkMoisture()
-//{
-//  // for mat will be like this but times need to be fixed
-//
-//   long currentTime = millis();
-//   
-//   if(currentTime - start >= eventInterval && boolReadData && timePassed < totalScanLength)
-//   {
-//      // see if need to water
-//      // waterNeeded = true;
-//      start = currentTime;
-//   }
-//}
-//
 
 
 
@@ -222,8 +244,3 @@ void motorControl()
   delay(500);
   
 }
-
-//int readWaterVal()
-//{
-//    waterVal = analogRead(waterInputPin);  
-//}
