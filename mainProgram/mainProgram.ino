@@ -25,31 +25,30 @@ LiquidCrystal_I2C lcd (0x27, 16, 2);
 
 
 // variables for program
-bool initialWaterReading = true;
-bool boolInitialWaitOnUser = false;
 int start;
 long beginScan;
 const int totalScanLength = 10; // original 60 seconds
-int waitBeforeReadTime = 3000;
-int maxWaterLevel = 0;
 int waterVal = 0;
-int numberValuesRead = 0;
-bool boolWait3Seconds = false;
-bool checkPlacedInSoil = true;
 int eventInterval = 1000; // initial setup will measure every second
 int highestAverageMoisture[totalScanLength];
-bool boolReadData = false;
-bool boolFindHighestAverage = false;
 int averageSum = 0;
 int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture[0]);
+
+// need to change this for final test to 3600
+
+const int routinetotalScanLength = 15;
+int routineMoisture[routinetotalScanLength];
+int routineArrayLength = sizeof(routineMoisture) / sizeof(int);
+int routineAverageSum = 0;
 
 int buttonPin = 5;
 int buttonCommand = 0;
 
-
+// variables for passing water sensor reading into array
 int arrayIndex = 0;
 int timePassed = 0;
 
+// saturation variables
 int fullSaturation = 0;
 int threeFourthSaturation = 0;
 int halfSaturation = 0;
@@ -62,15 +61,17 @@ void setup()
     pinMode(buttonPin, OUTPUT);
     pinMode(waterInputPin, INPUT); // The Water Sensor is an Input
     Serial.begin(9600);
-    Serial.println("Starting System");
-   
+
     lcd.begin(16, 2);
     lcd.backlight();
-
     stepper.setSpeed(motorSpeed);
-    
-    //Serial.println("Vertex info");    
 
+    // add code that will tell user to water plant fully before
+    // inserting water sensor will need to add code for scrolling text.
+    lcd.setCursor(0, 0);
+    lcd.print("Hello and welcome");
+    
+    Serial.println("Starting System");
     
    
 } // end of setup
@@ -78,13 +79,11 @@ void setup()
 void loop() 
 {
 
-    
-      
-    
     initialSetup();
     waterVal = analogRead(waterInputPin);
 
-    //checkMoisture();
+    // will be routine water checker
+    checkMoisture();
     
     
     //motorControl();
@@ -92,17 +91,28 @@ void loop()
 } // end of loop
 
 
-
-// find highest water value
-
-/*
- * Later condense this by making each part of this function it's own method
- * That way you don't need to turn things on and off. You can just call the 
- * initialSetup() once in the loop or something (might not work so try it)
- */
-
 // during regular moisture check, this method will be called
 // to see if water is necessary
+void checkMoisture()
+{
+   // every 60 mins run scan that lasts 1 min
+   
+   long currentTime = millis();
+   if(currentTime - start >= eventInterval && timePassed < totalScanLength && buttonCommand == 3)
+   {
+      // if time for scan is here: scan
+      if(timePassed > totalScanLength)
+      {
+        Serial.println("Sequence scan in progress");
+      }
+
+
+      
+   }
+
+
+  
+}
 
 
 void createLevelsOfMoisture(int average)
@@ -111,10 +121,25 @@ void createLevelsOfMoisture(int average)
     threeFourthSaturation = average * 0.75;
     halfSaturation = average / 2;
     dryBoi = average / 5;
-
+    
     // marks start of routine moisture check
+    // variables to control routine check
     start = millis();
+    timePassed = 0;
+
+    // empty array
+
+    // reset average
+    
 }
+
+// have one program that runs scan so don't have to write code both in initial and 
+// in routine checks
+//void scan()
+//{
+//  
+//}
+
 
 int initialSetup()
 {
