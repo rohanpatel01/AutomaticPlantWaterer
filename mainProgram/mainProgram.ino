@@ -43,6 +43,9 @@ bool boolFindHighestAverage = false;
 int averageSum = 0;
 int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture[0]);
 
+int buttonPin = 5;
+int buttonCommand = 0;
+
 
 int arrayIndex = 0;
 int timePassed = 0;
@@ -56,7 +59,7 @@ int dryBoi = 0;
 
 void setup() 
 {
-
+    pinMode(buttonPin, OUTPUT);
     pinMode(waterInputPin, INPUT); // The Water Sensor is an Input
     Serial.begin(9600);
     Serial.println("Starting System");
@@ -74,11 +77,13 @@ void setup()
 
 void loop() 
 {
-  
+
+    
+      
+    
     initialSetup();
     waterVal = analogRead(waterInputPin);
 
-    
     //checkMoisture();
     
     
@@ -99,128 +104,6 @@ void loop()
 // during regular moisture check, this method will be called
 // to see if water is necessary
 
-void checkMoisture()
-{
-  // for mat will be like this but times need to be fixed
-
-   long currentTime = millis();
-
-   // scan for 1 min, getting data every second. Scan happends every 1 hour
-   // need more code to keep with this timing ^ 
-   if(currentTime - start >= eventInterval && timePassed < totalScanLength)
-   {
-      // see if need to water
-      // waterNeeded = true
-
-      
-      
-      
-      timePassed++;
-      start = currentTime;
-
-     
-   }else if (timePassed > totalScanLength)
-   {
-      timePassed = 0;
-   }
-    
-   
-}
-
-
-int initialSetup()
-{
-  if(initialWaterReading)
-  {
-    if(waterVal > 30 && checkPlacedInSoil)
-    {
-      Serial.println("Placed in soil");
-      start = millis();
-      checkPlacedInSoil = false;
-      boolWait3Seconds =  true;
-    }
-    
-    
-    //wait 3 seconds till reading average
-    if(millis() - start >= waitBeforeReadTime && boolWait3Seconds)
-    {
-        Serial.println("3 seconds have passed - starting soil reading");
-        boolWait3Seconds = false;
-        boolReadData = true;
-        beginScan = millis();
-    }
-
-    long currentTime = millis();
-    if(currentTime - start >= eventInterval && boolReadData && timePassed < totalScanLength)
-    {
-      /*
-         We need totalScanLength - 1 b/c we want to find average when time is over
-         but we can't turn this off and turn next on b/c parameter to end scan 
-         is with other parameters. So we end scan early then get the last value
-         before we leave this loop
-       */
-       
-       if(timePassed < totalScanLength - 1)
-       {
-          Serial.println(waterVal);
-          highestAverageMoisture[arrayIndex] = waterVal;
-          arrayIndex++;
-       
-          start = millis();  
-          timePassed++; 
-
-         // when scan is over
-       } else {
-          // get the last value
-          Serial.println(waterVal);
-          highestAverageMoisture[arrayIndex] = waterVal;
-          arrayIndex++;
-       
-          start = millis();  
-          timePassed++; 
-
-          // end scan and find average
-          boolReadData = false;
-          boolFindHighestAverage = true;
-       }
-    }
-
-    // if scan is complete. find average
-    if(boolFindHighestAverage)
-    {
-      Serial.println("Find average");
-
-      // see if need global variable
-      
-
-      for(int x = 0; x < arrayLength; x++)
-      {
-          averageSum += highestAverageMoisture[x];
-      }
-      
-      Serial.print("Average : ");
-      Serial.println(averageSum / arrayLength);
-
-      createLevelsOfMoisture(averageSum / arrayLength);
-      
-      boolFindHighestAverage = false;
-      initialWaterReading = false;
-      
-      // need to reset millis for the routine moisture check
-      start = millis();
-
-      // reset time passed and change scan length to 1 hour for routine scan
-      
-      timePassed = 0;
-      totalScanLength = 3600;
-      
-    }
-   }// end of initialWaterReading
-
-   
-   
-}// end of initialSetup
-
 
 void createLevelsOfMoisture(int average)
 {
@@ -233,8 +116,69 @@ void createLevelsOfMoisture(int average)
     start = millis();
 }
 
+int initialSetup()
+{
+  
+  if(digitalRead(buttonPin) == HIGH && buttonCommand == 0 )
+  {
+    while(digitalRead(buttonPin) == HIGH){} // wait till button is released
+    Serial.println("Placed in soil");
+    buttonCommand++;
+    start = millis();
+    
+  }
 
+  long currentTime = millis();
+  // every second, for totalScanLength : get moisture of water
+  if(currentTime - start >= eventInterval && timePassed < totalScanLength && buttonCommand == 1)
+  {
+     // this will pass data from water sensor into array
+     // if time is almost up we will continue getting the values
+     // when time is up we will get the final value in the else statement
+     
+     if(timePassed < totalScanLength - 1)
+     {
+        Serial.println(waterVal);
+        highestAverageMoisture[arrayIndex] = waterVal;
+        arrayIndex++;
+     
+        start = millis();  
+        timePassed++; 
 
+     } else {
+        // get the last value
+        Serial.println(waterVal);
+        highestAverageMoisture[arrayIndex] = waterVal;
+        arrayIndex++;
+        start = millis();  
+        timePassed++; 
+
+        // move onto next part of code: finding average
+        buttonCommand++;
+        
+     }
+  }
+  
+  // if scan is complete. find average
+  if(buttonCommand == 2)
+  {
+    Serial.println("Find average");
+    for(int x = 0; x < arrayLength; x++)
+        averageSum += highestAverageMoisture[x];
+    
+   
+    Serial.print("Average : ");
+    Serial.println(averageSum / arrayLength);
+
+    createLevelsOfMoisture(averageSum / arrayLength);
+
+    // buttonCommand now = 3 and initialSequence is over
+    buttonCommand++;
+    
+  }
+}// end of initialWaterReading
+
+   
 
 void motorControl()
 {
