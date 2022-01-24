@@ -27,19 +27,19 @@ LiquidCrystal_I2C lcd (0x27, 16, 2);
 // variables for program
 int start;
 long beginScan;
-const int totalScanLength = 10; // original 60 seconds
-int waterVal = 0;
+int waterVal = 0;.
 int eventInterval = 1000; // initial setup will measure every second
+
+const int totalScanLength = 10; // original 60 seconds
 int highestAverageMoisture[totalScanLength];
 int averageSum = 0;
 int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture[0]);
 
-// need to change this for final test to 3600
-
-const int routinetotalScanLength = 15;
+const int routinetotalScanLength = 20; // how long routineScan lasts. Final will be 60
 int routineMoisture[routinetotalScanLength];
-int routineArrayLength = sizeof(routineMoisture) / sizeof(int);
 int routineAverageSum = 0;
+int routineArrayLength = sizeof(routineMoisture) / sizeof(routineMoisture[0]);
+bool shouldScan = false;
 
 int buttonPin = 5;
 int buttonCommand = 0;
@@ -90,6 +90,22 @@ void loop()
     
 } // end of loop
 
+// need function that delays time until it's time to scan again
+
+//void timeTillScan()
+//{
+//  if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
+//  {
+//    
+//    
+//    
+//  }
+//
+//  shouldScan = true;
+//}
+
+
+
 
 // during regular moisture check, this method will be called
 // to see if water is necessary
@@ -98,16 +114,28 @@ void checkMoisture()
    // every 60 mins run scan that lasts 1 min
    
    long currentTime = millis();
-   if(currentTime - start >= eventInterval && timePassed < totalScanLength && buttonCommand == 3)
+
+   // took out button command cuz not necessary    
+   if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
    {
-      // if time for scan is here: scan
-      if(timePassed > totalScanLength)
-      {
-        Serial.println("Sequence scan in progress");
-      }
-
-
+       timePassed++;
+       
+       // if scan is complete
+       if(timePassed >= totalScanLength)
+       {
+         Serial.println("Scan is over");
+         // have other command that waits 60 mins until next scan
+  
+         // scan won't start again automatically
+          
+         timePassed = 0;
+         shouldScan = false;
+       }
+       
+      Serial.println(timePassed);
       
+      
+      start = currentTime;
    }
 
 
@@ -125,20 +153,11 @@ void createLevelsOfMoisture(int average)
     // marks start of routine moisture check
     // variables to control routine check
     start = millis();
-    timePassed = 0;
+    timePassed = 0; 
+    shouldScan = true;
 
-    // empty array
-
-    // reset average
     
 }
-
-// have one program that runs scan so don't have to write code both in initial and 
-// in routine checks
-//void scan()
-//{
-//  
-//}
 
 
 int initialSetup()
@@ -196,7 +215,6 @@ int initialSetup()
     Serial.println(averageSum / arrayLength);
 
     createLevelsOfMoisture(averageSum / arrayLength);
-
     // buttonCommand now = 3 and initialSequence is over
     buttonCommand++;
     
