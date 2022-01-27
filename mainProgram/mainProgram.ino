@@ -12,8 +12,9 @@
 
 //set up pins
 int waterInputPin = A0;
-
-// array to hold values for average
+int photoResistorPin = A1;
+int currentLightLevel;
+int lightThreshold = 200;
 
 // initialization and variables related to it
 const int stepsPerRev = 2038;
@@ -26,8 +27,7 @@ LiquidCrystal_I2C lcd (0x27, 16, 2);
 
 // variables for program
 int start;
-long beginScan;
-int waterVal = 0;.
+int waterVal = 0;
 int eventInterval = 1000; // initial setup will measure every second
 
 const int totalScanLength = 10; // original 60 seconds
@@ -41,8 +41,8 @@ int routineAverageSum = 0;
 int routineArrayLength = sizeof(routineMoisture) / sizeof(routineMoisture[0]);
 bool shouldScan = false;
 
-int buttonPin = 5;
-int buttonCommand = 0;
+//buttonCommand
+int initialSetupStep = 0;
 
 // variables for passing water sensor reading into array
 int arrayIndex = 0;
@@ -54,34 +54,27 @@ int threeFourthSaturation = 0;
 int halfSaturation = 0;
 int dryBoi = 0;
 
-
-
 void setup() 
 {
-    pinMode(buttonPin, OUTPUT);
-    pinMode(waterInputPin, INPUT); // The Water Sensor is an Input
     Serial.begin(9600);
 
     lcd.begin(16, 2);
     lcd.backlight();
-    stepper.setSpeed(motorSpeed);
-
-    // add code that will tell user to water plant fully before
-    // inserting water sensor will need to add code for scrolling text.
     lcd.setCursor(0, 0);
     lcd.print("Hello and welcome");
-    
+    stepper.setSpeed(motorSpeed);
+
     Serial.println("Starting System");
-    
    
 } // end of setup
 
 void loop() 
 {
-
-    initialSetup();
     waterVal = analogRead(waterInputPin);
-
+    currentLightLevel = analogRead(photoResistorPin);
+    
+    initialSetup();
+    
     // will be routine water checker
     checkMoisture();
     
@@ -92,19 +85,19 @@ void loop()
 
 // need function that delays time until it's time to scan again
 
-//void timeTillScan()
-//{
-//  if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
-//  {
-//    
-//    
-//    
-//  }
-//
-//  shouldScan = true;
-//}
+/*
+ * void timeTillScan()
+{
+  if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
+  {
+    
+    
+    
+  }
 
-
+  shouldScan = true;
+}
+ */
 
 
 // during regular moisture check, this method will be called
@@ -162,19 +155,18 @@ void createLevelsOfMoisture(int average)
 
 int initialSetup()
 {
-  
-  if(digitalRead(buttonPin) == HIGH && buttonCommand == 0 )
+
+  if(currentLightLevel < lightThreshold && initialSetupStep == 0 )
   {
-    while(digitalRead(buttonPin) == HIGH){} // wait till button is released
     Serial.println("Placed in soil");
-    buttonCommand++;
+    initialSetupStep++;
     start = millis();
     
   }
 
   long currentTime = millis();
   // every second, for totalScanLength : get moisture of water
-  if(currentTime - start >= eventInterval && timePassed < totalScanLength && buttonCommand == 1)
+  if(currentTime - start >= eventInterval && timePassed < totalScanLength && initialSetupStep == 1)
   {
      // this will pass data from water sensor into array
      // if time is almost up we will continue getting the values
@@ -198,13 +190,13 @@ int initialSetup()
         timePassed++; 
 
         // move onto next part of code: finding average
-        buttonCommand++;
+        initialSetupStep++;
         
      }
   }
   
   // if scan is complete. find average
-  if(buttonCommand == 2)
+  if(initialSetupStep == 2)
   {
     Serial.println("Find average");
     for(int x = 0; x < arrayLength; x++)
@@ -215,8 +207,8 @@ int initialSetup()
     Serial.println(averageSum / arrayLength);
 
     createLevelsOfMoisture(averageSum / arrayLength);
-    // buttonCommand now = 3 and initialSequence is over
-    buttonCommand++;
+    // initialSetupStep now = 3 and initialSequence is over
+    initialSetupStep++;
     
   }
 }// end of initialWaterReading
