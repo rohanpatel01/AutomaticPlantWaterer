@@ -12,9 +12,7 @@
 
 //set up pins
 int waterInputPin = A0;
-int photoResistorPin = A1;
-int currentLightLevel;
-int lightThreshold = 200;
+int buttonInputPin = 9;
 
 // initialization and variables related to it
 const int stepsPerRev = 2038;
@@ -39,6 +37,7 @@ const int routinetotalScanLength = 20; // how long routineScan lasts. Final will
 int routineMoisture[routinetotalScanLength];
 int routineAverageSum = 0;
 int routineArrayLength = sizeof(routineMoisture) / sizeof(routineMoisture[0]);
+
 bool shouldScan = false;
 
 //buttonCommand
@@ -71,7 +70,6 @@ void setup()
 void loop() 
 {
     waterVal = analogRead(waterInputPin);
-    currentLightLevel = analogRead(photoResistorPin);
     
     initialSetup();
     
@@ -103,7 +101,7 @@ void loop()
 // during regular moisture check, this method will be called
 // to see if water is necessary
 void checkMoisture()
-{
+{ 
    // every 60 mins run scan that lasts 1 min
    
    long currentTime = millis();
@@ -111,6 +109,7 @@ void checkMoisture()
    // took out button command cuz not necessary    
    if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
    {
+    
        timePassed++;
        
        // if scan is complete
@@ -124,6 +123,10 @@ void checkMoisture()
          timePassed = 0;
          shouldScan = false;
        }
+
+       // need to add else statement like you did in the initial setup to get the last value in scan
+
+       
        
       Serial.println(timePassed);
       
@@ -142,6 +145,7 @@ void createLevelsOfMoisture(int average)
     threeFourthSaturation = average * 0.75;
     halfSaturation = average / 2;
     dryBoi = average / 5;
+    // print this out to user ^
     
     // marks start of routine moisture check
     // variables to control routine check
@@ -156,8 +160,9 @@ void createLevelsOfMoisture(int average)
 int initialSetup()
 {
 
-  if(currentLightLevel < lightThreshold && initialSetupStep == 0 )
+  if(digitalRead(buttonInputPin) == HIGH && initialSetupStep == 0 )
   {
+    while(digitalRead(buttonInputPin) == HIGH) {}
     Serial.println("Placed in soil");
     initialSetupStep++;
     start = millis();
