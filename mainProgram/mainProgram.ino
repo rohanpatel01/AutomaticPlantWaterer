@@ -28,15 +28,14 @@ int start;
 int waterVal = 0;
 int eventInterval = 1000; // initial setup will measure every second
 
-const int totalScanLength = 10; // original 60 seconds
+// will be array for both initial and routine scan
+const int totalScanLength = 3; // original 60 seconds
 int highestAverageMoisture[totalScanLength];
 int averageSum = 0;
 int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture[0]);
 
-const int routinetotalScanLength = 20; // how long routineScan lasts. Final will be 60
-int routineMoisture[routinetotalScanLength];
-int routineAverageSum = 0;
-int routineArrayLength = sizeof(routineMoisture) / sizeof(routineMoisture[0]);
+int timeTillNextScan = 5; // 5 seconds for testing. 3600 for real (1 hour)
+bool wait = false;
 
 bool shouldScan = false;
 
@@ -60,7 +59,7 @@ void setup()
     lcd.begin(16, 2);
     lcd.backlight();
     lcd.setCursor(0, 0);
-    lcd.print("Hello and welcome");
+    lcd.print("Hello Aadi");
     stepper.setSpeed(motorSpeed);
 
     Serial.println("Starting System");
@@ -75,27 +74,14 @@ void loop()
     
     // will be routine water checker
     checkMoisture();
+
+    // after scan is complete program will wait until it scans again
+    waitBeforeNextScan();
     
     
     //motorControl();
     
 } // end of loop
-
-// need function that delays time until it's time to scan again
-
-/*
- * void timeTillScan()
-{
-  if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
-  {
-    
-    
-    
-  }
-
-  shouldScan = true;
-}
- */
 
 
 // during regular moisture check, this method will be called
@@ -106,36 +92,65 @@ void checkMoisture()
    
    long currentTime = millis();
 
-   // took out button command cuz not necessary    
-   if(currentTime - start >= eventInterval && timePassed < routinetotalScanLength && shouldScan)
+   // took out button command cuz not necessary    totalScanLength
+   if(currentTime - start >= eventInterval && timePassed < totalScanLength && shouldScan)
    {
     
-       timePassed++;
-       
-       // if scan is complete
-       if(timePassed >= totalScanLength)
-       {
-         Serial.println("Scan is over");
-         // have other command that waits 60 mins until next scan
-  
-         // scan won't start again automatically
-          
-         timePassed = 0;
-         shouldScan = false;
-       }
+      if(timePassed < totalScanLength - 1)
+      {
+        timePassed++;
+        Serial.println(timePassed);
+        start = currentTime;
+      }else
+      {
+        // get last value
+        timePassed++;
+        Serial.println(timePassed);
+        Serial.println("Scan is over");
+        timePassed = 0;
+        shouldScan = false;
 
-       // need to add else statement like you did in the initial setup to get the last value in scan
+        // settings for next method
+        timePassed = 0;
+        start = millis();
+        
+        wait = true;
 
-       
-       
+      }  
+   }
+}
+
+void waitBeforeNextScan()
+{
+   long currentTime = millis();
+
+   if(currentTime - start >= eventInterval && wait)
+   {
+
+//      highestAverageMoisture[arrayIndex] = waterVal;
+//      arrayIndex++;
+    
+      timePassed++;
       Serial.println(timePassed);
       
       
+      if(timePassed >= timeTillNextScan)
+      {
+        shouldScan = true;
+        wait = false;
+        
+        // settings for next method
+        timePassed = 0;  
+        start = millis();
+
+
+        Serial.println("Routine scan reoccuring");
+      }
+
       start = currentTime;
+
+      
    }
-
-
-  
 }
 
 
@@ -155,7 +170,6 @@ void createLevelsOfMoisture(int average)
 
     
 }
-
 
 int initialSetup()
 {
@@ -212,13 +226,26 @@ int initialSetup()
     Serial.println(averageSum / arrayLength);
 
     createLevelsOfMoisture(averageSum / arrayLength);
-    // initialSetupStep now = 3 and initialSequence is over
+
+    clearArray();
+    
     initialSetupStep++;
     
   }
 }// end of initialWaterReading
 
-   
+void clearArray()
+{
+  
+    for(int x = 0; x < arrayLength; x++)
+      highestAverageMoisture[x] = 0;
+      averageSum = 0;
+
+    Serial.println("array cleared");
+
+     
+}
+
 
 void motorControl()
 {
