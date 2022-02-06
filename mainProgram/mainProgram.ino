@@ -76,7 +76,7 @@ void loop()
     checkMoisture();
 
     // after scan is complete program will wait until it scans again
-    waitBeforeNextScan();
+//    waitBeforeNextScan();
     
     
     //motorControl();
@@ -108,7 +108,7 @@ void checkMoisture()
         Serial.println(timePassed);
         Serial.println("Scan is over");
         timePassed = 0;
-        shouldScan = false;
+        //shouldScan = false;
 
         // settings for next method
         timePassed = 0;
@@ -120,38 +120,38 @@ void checkMoisture()
    }
 }
 
-void waitBeforeNextScan()
-{
-   long currentTime = millis();
-
-   if(currentTime - start >= eventInterval && wait)
-   {
-
-//      highestAverageMoisture[arrayIndex] = waterVal;
-//      arrayIndex++;
-    
-      timePassed++;
-      Serial.println(timePassed);
-      
-      
-      if(timePassed >= timeTillNextScan)
-      {
-        shouldScan = true;
-        wait = false;
-        
-        // settings for next method
-        timePassed = 0;  
-        start = millis();
-
-
-        Serial.println("Routine scan reoccuring");
-      }
-
-      start = currentTime;
-
-      
-   }
-}
+//void waitBeforeNextScan()
+//{
+//   long currentTime = millis();
+//
+//   if(currentTime - start >= eventInterval && wait)
+//   {
+//
+////      highestAverageMoisture[arrayIndex] = waterVal;
+////      arrayIndex++;
+//    
+//      timePassed++;
+//      Serial.println(timePassed);
+//      
+//      
+//      if(timePassed >= timeTillNextScan)
+//      {
+//        shouldScan = true;
+//        wait = false;
+//        
+//        // settings for next method
+//        timePassed = 0;  
+//        start = millis();
+//
+//
+//        Serial.println("Routine scan reoccuring");
+//      }
+//
+//      start = currentTime;
+//
+//      
+//   }
+//}
 
 
 void createLevelsOfMoisture(int average)
