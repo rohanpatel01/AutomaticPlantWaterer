@@ -76,7 +76,7 @@ void loop()
     checkMoisture();
 
     // after scan is complete program will wait until it scans again
-//    waitBeforeNextScan();
+    waitBeforeNextScan();
     
     
     //motorControl();
@@ -89,23 +89,34 @@ void loop()
 void checkMoisture()
 { 
    // every 60 mins run scan that lasts 1 min
-   
+   // try using millis() % 5000 so it happends every 5 seconds
    long currentTime = millis();
 
    // took out button command cuz not necessary    totalScanLength
    if(currentTime - start >= eventInterval && timePassed < totalScanLength && shouldScan)
    {
-    
+      
       if(timePassed < totalScanLength - 1)
       {
         timePassed++;
-        Serial.println(timePassed);
+
+        highestAverageMoisture[arrayIndex] = waterVal;
+        arrayIndex++;
+
+        Serial.println(highestAverageMoisture[arrayIndex]);
         start = currentTime;
+
+        
       }else
       {
         // get last value
         timePassed++;
-        Serial.println(timePassed);
+        
+        highestAverageMoisture[arrayIndex] = waterVal;
+        arrayIndex++;
+        Serial.println(highestAverageMoisture[arrayIndex]);
+
+        
         Serial.println("Scan is over");
         timePassed = 0;
         //shouldScan = false;
@@ -120,38 +131,32 @@ void checkMoisture()
    }
 }
 
-//void waitBeforeNextScan()
-//{
-//   long currentTime = millis();
-//
-//   if(currentTime - start >= eventInterval && wait)
-//   {
-//
-////      highestAverageMoisture[arrayIndex] = waterVal;
-////      arrayIndex++;
-//    
-//      timePassed++;
-//      Serial.println(timePassed);
-//      
-//      
-//      if(timePassed >= timeTillNextScan)
-//      {
-//        shouldScan = true;
-//        wait = false;
-//        
-//        // settings for next method
-//        timePassed = 0;  
-//        start = millis();
-//
-//
-//        Serial.println("Routine scan reoccuring");
-//      }
-//
-//      start = currentTime;
-//
-//      
-//   }
-//}
+void waitBeforeNextScan()
+{
+   long currentTime = millis();
+
+   if(currentTime - start >= eventInterval && wait)
+   {
+      timePassed++;
+      
+      if(timePassed >= timeTillNextScan)
+      {
+        shouldScan = true;
+        wait = false;
+        
+        // settings for next method
+        timePassed = 0;  
+        start = millis();
+
+
+        Serial.println("Routine scan reoccuring");
+      }
+
+      start = currentTime;
+
+      
+   }
+}
 
 
 void createLevelsOfMoisture(int average)
@@ -173,9 +178,9 @@ void createLevelsOfMoisture(int average)
 
 int initialSetup()
 {
-
   if(digitalRead(buttonInputPin) == HIGH && initialSetupStep == 0 )
   {
+
     while(digitalRead(buttonInputPin) == HIGH) {}
     Serial.println("Placed in soil");
     initialSetupStep++;
@@ -187,6 +192,8 @@ int initialSetup()
   // every second, for totalScanLength : get moisture of water
   if(currentTime - start >= eventInterval && timePassed < totalScanLength && initialSetupStep == 1)
   {
+
+    
      // this will pass data from water sensor into array
      // if time is almost up we will continue getting the values
      // when time is up we will get the final value in the else statement
