@@ -76,7 +76,7 @@ void loop()
     checkMoisture();
 
     // after scan is complete program will wait until it scans again
-    waitBeforeNextScan();
+//    waitBeforeNextScan();
     
     
     //motorControl();
@@ -120,6 +120,7 @@ void checkMoisture()
    }
 }
 
+<<<<<<< HEAD
 void waitBeforeNextScan()
 {
    long currentTime = millis();
@@ -152,6 +153,40 @@ void waitBeforeNextScan()
       
    }
 }
+=======
+//void waitBeforeNextScan()
+//{
+//   long currentTime = millis();
+//
+//   if(currentTime - start >= eventInterval && wait)
+//   {
+//
+////      highestAverageMoisture[arrayIndex] = waterVal;
+////      arrayIndex++;
+//    
+//      timePassed++;
+//      Serial.println(timePassed);
+//      
+//      
+//      if(timePassed >= timeTillNextScan)
+//      {
+//        shouldScan = true;
+//        wait = false;
+//        
+//        // settings for next method
+//        timePassed = 0;  
+//        start = millis();
+//
+//
+//        Serial.println("Routine scan reoccuring");
+//      }
+//
+//      start = currentTime;
+//
+//      
+//   }
+//}
+>>>>>>> parent of d33ed5b (saving to go to spammingIssue)
 
 
 void createLevelsOfMoisture(int average)
