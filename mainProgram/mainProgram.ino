@@ -1,3 +1,13 @@
+/*
+ * Issue log:
+ * CheckMoisture is not logging the right values from water sensor
+ * this also causes system to crash. See what is going on here.
+ * 
+ */
+
+
+
+
 #include <Array.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
