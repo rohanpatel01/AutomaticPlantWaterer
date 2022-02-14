@@ -16,8 +16,13 @@
  * Wait feature works fine until 5+ iterations then it spams
  * 
  * 
+ * Moved start = currentTime in wait method to inside the if statement
+ * from outside the if statement. I think this will fix the spamming issue 
+ * cuz that is a timing issue
+ * 
+ * 
+ * 
  */
-
 
 #include <Array.h>
 #include <Wire.h>
@@ -91,7 +96,6 @@ void checkMoisture()
    // took out button command cuz not necessary    totalScanLength
    if(currentTime - start >= eventInterval && timePassed < totalScanLength && shouldScan)
    {
-    
       if(timePassed < totalScanLength - 1)
       {
          timePassed++;
@@ -99,11 +103,8 @@ void checkMoisture()
          highestAverageMoisture[arrayIndex] = waterVal;
          Serial.println(highestAverageMoisture[arrayIndex]);
 
-         // before print was after index was ++
          arrayIndex++;
-      
-      
-        start = currentTime;
+         start = currentTime;
       }else
       {
         // get last value
@@ -112,15 +113,9 @@ void checkMoisture()
         highestAverageMoisture[arrayIndex] = waterVal;
         Serial.println(highestAverageMoisture[arrayIndex]);
 
-        // before print was after index was ++
-
         arrayIndex++;
 
         Serial.println("Scan is over");
-
-        
-
-        // for testing:
         
         // settings for next method
         timePassed = 0;
@@ -128,21 +123,15 @@ void checkMoisture()
 
         shouldScan = false;
         wait = true;
-
-        // for testing:
-        //wait = false;
-        // shouldScan = true;
-
-
       }
    }
 }
 
+// this is causing the spamming issue
 
 void waitBeforeNextScan()
 {
-   long currentTime = millis();
-   if(currentTime - start >= eventInterval && timePassed < timeTillNextScan && wait)
+   if(millis() - start >= eventInterval && timePassed < timeTillNextScan && wait)
    {
 
       // routine before last value
@@ -150,25 +139,25 @@ void waitBeforeNextScan()
       {
         timePassed++;
         Serial.println(timePassed);
+        start = millis();
         
       }else   // the last value and when scan is over
       {
-
+        // last value
         timePassed++;
         Serial.println(timePassed);
 
-        
         // settings for next method
         shouldScan = true;
         wait = false;
-        
+
+        // settings for next method
         timePassed = 0;  
         start = millis();
         Serial.println("Wait Complete");
       }
 
       
-      start = currentTime;
       
    }
 }
