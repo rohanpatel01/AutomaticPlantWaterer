@@ -3,9 +3,20 @@
  * CheckMoisture is not logging the right values from water sensor
  * this also causes system to crash. See what is going on here.
  * 
+ * 
+ * Solution log:
+ * I changed the print statement to come before the array++
+ * This way I didn't log a value that didn't exist b/c we're
+ * trying to access something ahead of what we have
+ * 
+ * ^ So far initialScan and checkMoisture work perfectly, 
+ * now need to test wait feature
+ * 
+ * ***** NEED TO FIX SOMETHING WITH WAIT FEATURE
+ * Wait feature works fine until 5+ iterations then it spams
+ * 
+ * 
  */
-
-
 
 
 #include <Array.h>
@@ -54,6 +65,7 @@ void setup()
     lcd.setCursor(0, 0);
     lcd.print("Hello Aadi");
     stepper.setSpeed(motorSpeed);
+    Serial.println("--------------------------------------------");
     Serial.println("Starting System");
    
 } // end of setup
@@ -85,9 +97,11 @@ void checkMoisture()
          timePassed++;
         
          highestAverageMoisture[arrayIndex] = waterVal;
+         Serial.println(highestAverageMoisture[arrayIndex]);
+
+         // before print was after index was ++
          arrayIndex++;
       
-         Serial.println(highestAverageMoisture[arrayIndex]);
       
         start = currentTime;
       }else
@@ -96,20 +110,29 @@ void checkMoisture()
         timePassed++;
 
         highestAverageMoisture[arrayIndex] = waterVal;
-        arrayIndex++;
-
         Serial.println(highestAverageMoisture[arrayIndex]);
+
+        // before print was after index was ++
+
+        arrayIndex++;
 
         Serial.println("Scan is over");
 
         
-        timePassed = 0;
-        shouldScan = false;
+
+        // for testing:
+        
         // settings for next method
         timePassed = 0;
         start = millis();
-        
+
+        shouldScan = false;
         wait = true;
+
+        // for testing:
+        //wait = false;
+        // shouldScan = true;
+
 
       }
    }
@@ -119,25 +142,32 @@ void checkMoisture()
 void waitBeforeNextScan()
 {
    long currentTime = millis();
-   if(currentTime - start >= eventInterval && wait)
+   if(currentTime - start >= eventInterval && timePassed < timeTillNextScan && wait)
    {
 
-    // should be printing the timePassed
-
-      timePassed++;
-      Serial.println(timePassed);
-      
-      
-      if(timePassed >= timeTillNextScan)
+      // routine before last value
+      if(timePassed < timeTillNextScan - 1)
       {
+        timePassed++;
+        Serial.println(timePassed);
+        
+      }else   // the last value and when scan is over
+      {
+
+        timePassed++;
+        Serial.println(timePassed);
+
+        
+        // settings for next method
         shouldScan = true;
         wait = false;
         
-        // settings for next method
         timePassed = 0;  
         start = millis();
-        Serial.println("Routine scan reoccuring");
+        Serial.println("Wait Complete");
       }
+
+      
       start = currentTime;
       
    }
@@ -160,13 +190,9 @@ void createLevelsOfMoisture(int average)
 }
 
 
-
-
-
-  
 int initialSetup()
 {
-  if(digitalRead(buttonInputPin) == HIGH && initialSetupStep == 0 )
+  if(digitalRead(buttonInputPin) == HIGH && initialSetupStep == 0)
   {
     while(digitalRead(buttonInputPin) == HIGH) {}
     Serial.println("Placed in soil");
@@ -175,9 +201,9 @@ int initialSetup()
     
   }
   
-  long currentTime = millis();
+  //long currentTime = millis();
   // every second, for totalScanLength : get moisture of water
-  if(currentTime - start >= eventInterval && timePassed < totalScanLength && initialSetupStep == 1)
+  if(millis() - start >= eventInterval && timePassed < totalScanLength && initialSetupStep == 1)
   {
      // this will pass data from water sensor into array
      // if time is almost up we will continue getting the values
