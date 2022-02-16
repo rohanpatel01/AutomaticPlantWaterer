@@ -62,13 +62,24 @@ int threeFourthSaturation = 0;
 int halfSaturation = 0;
 int dryBoi = 0;
 
+// LEDs for testing spammingIssue
+int leftLED = 11;
+int middleLED = 12;
+int rightLED = 13;
+
+
+
 void setup() 
 {
+    pinMode(leftLED, OUTPUT);
+    pinMode(middleLED, OUTPUT);
+    pinMode(rightLED, OUTPUT);
+
     Serial.begin(9600);
     lcd.begin(16, 2);
     lcd.backlight();
     lcd.setCursor(0, 0);
-    lcd.print("Hello Aadi");
+    lcd.print("Hello There!");
     stepper.setSpeed(motorSpeed);
     Serial.println("--------------------------------------------");
     Serial.println("Starting System");
@@ -78,8 +89,8 @@ void setup()
 void loop()
 {
    waterVal = analogRead(waterInputPin);
-    
-    initialSetup();
+   
+   initialSetup();
     
     // will be routine water checker
     checkMoisture();
@@ -92,10 +103,21 @@ void loop()
 
 void checkMoisture()
 {
-  long currentTime = millis();
+   
    // took out button command cuz not necessary    totalScanLength
-   if(currentTime - start >= eventInterval && timePassed < totalScanLength && shouldScan)
+   if(millis() - start >= eventInterval && timePassed < totalScanLength && shouldScan)
    {
+
+      digitalWrite(leftLED, LOW);
+      
+      // turn on current LED
+      digitalWrite(middleLED, HIGH);
+
+      
+      digitalWrite(rightLED, LOW);
+      
+
+    
       if(timePassed < totalScanLength - 1)
       {
          timePassed++;
@@ -131,9 +153,18 @@ void checkMoisture()
 
 void waitBeforeNextScan()
 {
+    
+    
    if(millis() - start >= eventInterval && timePassed < timeTillNextScan && wait)
    {
 
+      // turn off previous LED
+      digitalWrite(middleLED, LOW);
+    
+      // turn on current LED
+      digitalWrite(rightLED, HIGH);
+
+    
       // routine before last value
       if(timePassed < timeTillNextScan - 1)
       {
@@ -181,8 +212,12 @@ void createLevelsOfMoisture(int average)
 
 int initialSetup()
 {
+  
   if(digitalRead(buttonInputPin) == HIGH && initialSetupStep == 0)
   {
+    digitalWrite(leftLED, HIGH);
+
+    
     while(digitalRead(buttonInputPin) == HIGH) {}
     Serial.println("Placed in soil");
     initialSetupStep++;
@@ -194,6 +229,9 @@ int initialSetup()
   // every second, for totalScanLength : get moisture of water
   if(millis() - start >= eventInterval && timePassed < totalScanLength && initialSetupStep == 1)
   {
+     digitalWrite(leftLED, HIGH);
+
+     
      // this will pass data from water sensor into array
      // if time is almost up we will continue getting the values
      // when time is up we will get the final value in the else statement
@@ -224,6 +262,10 @@ int initialSetup()
    // if scan is complete. find average
   if(initialSetupStep == 2)
   {
+
+   digitalWrite(leftLED, HIGH);
+
+  
     Serial.println("Find average");
     for(int x = 0; x < arrayLength; x++)
         averageSum += highestAverageMoisture[x];
