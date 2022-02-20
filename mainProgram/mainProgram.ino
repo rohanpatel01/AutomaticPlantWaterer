@@ -124,9 +124,9 @@ void checkMoisture()
         
          highestAverageMoisture[arrayIndex] = waterVal;
          Serial.println(highestAverageMoisture[arrayIndex]);
-
+         
          arrayIndex++;
-         start = currentTime;
+         start = millis();
       }else
       {
         // get last value
@@ -137,8 +137,28 @@ void checkMoisture()
 
         arrayIndex++;
 
-        Serial.println("Scan is over");
-        
+        Serial.println("Checking if needs water");
+
+
+        // find average
+        Serial.println("Find average");
+            for(int x = 0; x < arrayLength; x++)
+                averageSum += highestAverageMoisture[x];
+
+        Serial.print("Average : ");
+        Serial.println(averageSum / arrayLength);
+
+     
+        // determine if water is needed
+        if ((averageSum / arrayLength) <= halfSaturation)
+        {
+          Serial.println("Needs water");
+          
+        }else
+        {
+          Serial.println("Still moist");
+        }
+
         // settings for next method
         timePassed = 0;
         start = millis();
@@ -149,15 +169,10 @@ void checkMoisture()
    }
 }
 
-// this is causing the spamming issue
-
 void waitBeforeNextScan()
 {
-    
-    
    if(millis() - start >= eventInterval && timePassed < timeTillNextScan && wait)
    {
-
       // turn off previous LED
       digitalWrite(middleLED, LOW);
     
@@ -187,9 +202,6 @@ void waitBeforeNextScan()
         start = millis();
         Serial.println("Wait Complete");
       }
-
-      
-      
    }
 }
 
@@ -208,6 +220,7 @@ void createLevelsOfMoisture(int average)
     shouldScan = true;
     
 }
+
 
 
 int initialSetup()
@@ -253,8 +266,6 @@ int initialSetup()
         timePassed++; 
         // move onto next part of code: finding average
         initialSetupStep++;
-
-
         
      }
   }
@@ -265,15 +276,16 @@ int initialSetup()
 
    digitalWrite(leftLED, HIGH);
 
-  
-    Serial.println("Find average");
-    for(int x = 0; x < arrayLength; x++)
-        averageSum += highestAverageMoisture[x];
+
     
-   
+    Serial.println("Find average");
+            for(int x = 0; x < arrayLength; x++)
+                averageSum += highestAverageMoisture[x];
+    
     Serial.print("Average : ");
     Serial.println(averageSum / arrayLength);
     createLevelsOfMoisture(averageSum / arrayLength);
+    
     clearArray();
     
     initialSetupStep++;
@@ -282,17 +294,13 @@ int initialSetup()
 }// end of initialWaterReading
 
 
-
-
-
-
-
 void clearArray()
 {
-  
+    
     for(int x = 0; x < arrayLength; x++)
       highestAverageMoisture[x] = 0;
       averageSum = 0;
+    
     Serial.println("array cleared");
      
 }
