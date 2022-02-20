@@ -67,8 +67,6 @@ int leftLED = 11;
 int middleLED = 12;
 int rightLED = 13;
 
-
-
 void setup() 
 {
     pinMode(leftLED, OUTPUT);
@@ -88,57 +86,54 @@ void setup()
 
 void loop()
 {
-   waterVal = analogRead(waterInputPin);
+    waterVal = analogRead(waterInputPin);
    
-   initialSetup();
+    initialSetup();
     
-    // will be routine water checker
     checkMoisture();
-    // after scan is complete program will wait until it scans again
-    waitBeforeNextScan();
     
+    waitBeforeNextScan();
     
     //motorControl();
 }
 
 void checkMoisture()
 {
-   
-   // took out button command cuz not necessary    totalScanLength
    if(millis() - start >= eventInterval && timePassed < totalScanLength && shouldScan)
    {
-
       digitalWrite(leftLED, LOW);
       
       // turn on current LED
       digitalWrite(middleLED, HIGH);
 
-      
       digitalWrite(rightLED, LOW);
       
-
-    
       if(timePassed < totalScanLength - 1)
       {
-         timePassed++;
+         Serial.println("Check Moisture values");
+         Serial.println("Should Scan");
+         Serial.println(shouldScan);
+
+         Serial.println("wait");
+         Serial.println(wait);
         
+         timePassed++;
+         
          highestAverageMoisture[arrayIndex] = waterVal;
          Serial.println(highestAverageMoisture[arrayIndex]);
-         
          arrayIndex++;
+         
          start = millis();
       }else
       {
         // get last value
-        timePassed++;
-
+        //timePassed++;
+        
         highestAverageMoisture[arrayIndex] = waterVal;
         Serial.println(highestAverageMoisture[arrayIndex]);
 
-        arrayIndex++;
-
-        Serial.println("Checking if needs water");
-
+        // this might be the issue
+        //arrayIndex++;
 
         // find average
         Serial.println("Find average");
@@ -148,7 +143,6 @@ void checkMoisture()
         Serial.print("Average : ");
         Serial.println(averageSum / arrayLength);
 
-     
         // determine if water is needed
         if ((averageSum / arrayLength) <= halfSaturation)
         {
@@ -158,13 +152,16 @@ void checkMoisture()
         {
           Serial.println("Still moist");
         }
-
+        
+        clearArray();
+        
         // settings for next method
         timePassed = 0;
-        start = millis();
-
         shouldScan = false;
         wait = true;
+
+        start = millis();
+        
       }
    }
 }
@@ -179,10 +176,16 @@ void waitBeforeNextScan()
       // turn on current LED
       digitalWrite(rightLED, HIGH);
 
-    
       // routine before last value
       if(timePassed < timeTillNextScan - 1)
       {
+         Serial.println("waitBeforeNextScan values");
+         Serial.println("Should Scan");
+         Serial.println(shouldScan);
+
+         Serial.println("wait");
+         Serial.println(wait);
+        
         timePassed++;
         Serial.println(timePassed);
         start = millis();
@@ -192,15 +195,13 @@ void waitBeforeNextScan()
         // last value
         timePassed++;
         Serial.println(timePassed);
-
+        
         // settings for next method
         shouldScan = true;
         wait = false;
-
-        // settings for next method
         timePassed = 0;  
-        start = millis();
         Serial.println("Wait Complete");
+        start = millis();
       }
    }
 }
@@ -210,18 +211,13 @@ void createLevelsOfMoisture(int average)
     fullSaturation = average;
     threeFourthSaturation = average * 0.75;
     halfSaturation = average / 2;
-    dryBoi = average / 5;
-    // print this out to user ^
-    
-    // marks start of routine moisture check
-    // variables to control routine check
-    start = millis();
+    dryBoi = average / 5;    
+ 
     timePassed = 0; 
     shouldScan = true;
+    start = millis();
     
 }
-
-
 
 int initialSetup()
 {
@@ -299,7 +295,10 @@ void clearArray()
     
     for(int x = 0; x < arrayLength; x++)
       highestAverageMoisture[x] = 0;
-      averageSum = 0;
+
+    
+    averageSum = 0;
+    arrayIndex = 0;
     
     Serial.println("array cleared");
      
