@@ -20,14 +20,23 @@
  * from outside the if statement. I think this will fix the spamming issue 
  * cuz that is a timing issue
  * 
- * 
+ * Shubham said to try and limit the amount of memory and Int can use.
+ * Look into U Int 24 8 16
+ * Need std.h
  * 
  */
+
+#include <stdio.h>
+
+#include <MemoryFree.h>;
 
 #include <Array.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Stepper.h>
+
+
+
 
 int waterInputPin = A0;
 int buttonInputPin = 9;
@@ -110,18 +119,14 @@ void checkMoisture()
       
       if(timePassed < totalScanLength - 1)
       {
-         Serial.println("Check Moisture values");
-         Serial.println("Should Scan");
-         Serial.println(shouldScan);
-
-         Serial.println("wait");
-         Serial.println(wait);
-        
          timePassed++;
          
-         highestAverageMoisture[arrayIndex] = waterVal;
-         Serial.println(highestAverageMoisture[arrayIndex]);
-         arrayIndex++;
+          highestAverageMoisture[arrayIndex] = waterVal;
+          Serial.println(highestAverageMoisture[arrayIndex]);
+          arrayIndex++;
+
+         Serial.println("Free Memory"); 
+         Serial.println(freeMemory());
          
          start = millis();
       }else
@@ -136,9 +141,11 @@ void checkMoisture()
         //arrayIndex++;
 
         // find average
-        Serial.println("Find average");
             for(int x = 0; x < arrayLength; x++)
+            {
                 averageSum += highestAverageMoisture[x];
+            }
+                
 
         Serial.print("Average : ");
         Serial.println(averageSum / arrayLength);
@@ -153,7 +160,7 @@ void checkMoisture()
           Serial.println("Still moist");
         }
         
-        clearArray();
+         clearArray();
         
         // settings for next method
         timePassed = 0;
@@ -179,12 +186,6 @@ void waitBeforeNextScan()
       // routine before last value
       if(timePassed < timeTillNextScan - 1)
       {
-         Serial.println("waitBeforeNextScan values");
-         Serial.println("Should Scan");
-         Serial.println(shouldScan);
-
-         Serial.println("wait");
-         Serial.println(wait);
         
         timePassed++;
         Serial.println(timePassed);
@@ -226,7 +227,6 @@ int initialSetup()
   {
     digitalWrite(leftLED, HIGH);
 
-    
     while(digitalRead(buttonInputPin) == HIGH) {}
     Serial.println("Placed in soil");
     initialSetupStep++;
@@ -270,13 +270,13 @@ int initialSetup()
   if(initialSetupStep == 2)
   {
 
-   digitalWrite(leftLED, HIGH);
+    digitalWrite(leftLED, HIGH);
 
-
-    
     Serial.println("Find average");
-            for(int x = 0; x < arrayLength; x++)
-                averageSum += highestAverageMoisture[x];
+    for(int x = 0; x < arrayLength; x++)
+    {
+         averageSum += highestAverageMoisture[x];
+    }
     
     Serial.print("Average : ");
     Serial.println(averageSum / arrayLength);
@@ -290,12 +290,13 @@ int initialSetup()
 }// end of initialWaterReading
 
 
-void clearArray()
+void  clearArray()
 {
     
     for(int x = 0; x < arrayLength; x++)
+    {
       highestAverageMoisture[x] = 0;
-
+    }
     
     averageSum = 0;
     arrayIndex = 0;
@@ -307,7 +308,6 @@ void clearArray()
 
 void motorControl()
 {
-  // if (waterNeeded) : motor move to allow water and turn off after x seconds
   
   Serial.println("clockwise full");
   stepper.step(stepsPerRev);
