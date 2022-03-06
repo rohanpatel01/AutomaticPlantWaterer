@@ -12,29 +12,13 @@ LiquidCrystal_I2C lcd (0x27, 16, 2);
 #define  rightLED  13
 
 #define totalScanLength  3
-const int eventInterval = 1000;
+const int totalWaitTime = 5000;
+const int delayTime = 1000;
 
 int fullSaturation = 0;
 int threeFourthSaturation = 0;
 int halfSaturation = 0;
 int dryBoi = 0;
-
-
-
-int start;
-
-//int highestAverageMoisture[totalScanLength];
-//int arrayLength = sizeof(highestAverageMoisture) / sizeof(highestAverageMoisture[0]);
-
-int timeTillNextScan = 5; 
-int initialSetupStep = 0;
-int arrayIndex = 0;
-int timePassed = 0;
-
-// LEDs for testing spammingIssue
-int leftLED = 11;
-int middleLED = 12;
-int rightLED = 13;
 
 void setup() 
 {
@@ -48,31 +32,20 @@ void setup()
     lcd.print("Hello There!");
     Serial.println("--------------");
     Serial.println("Starting System");
-
-    // when button is pressed we start program
-    if(digitalRead(buttonInputPin) == HIGH)
-        while(digitalRead(buttonInputPin) == HIGH) {}
-    
+    Serial.println("Placed in soil");
     digitalWrite(leftLED, HIGH);
-
-    int average = 0;
+    int value = 0;
     int sum;
-    int waterVal = 0;
-
-    int highestAverageMoisture = 0;
-
-    // first initial scan is below
 
     for(byte x = 0; x < totalScanLength; x++)
     {
-         waterVal = analogRead(waterInputPin);
-         Serial.println(waterVal);
-         sum += waterVal;
-         delay(eventInterval);
+         value = analogRead(waterInputPin);
+         Serial.println(value);
+         sum += value;
+         delay(delayTime);
     }
-    
-    averageSum = sum / totalScanLength;
-    Serial.print("highest Moisture : ");  Serial.println(averageSum);
+    int average = sum / totalScanLength;
+    Serial.print("Average : ");  Serial.println(average);
 
     fullSaturation = average;
     threeFourthSaturation = average * 0.75;
@@ -93,11 +66,6 @@ byte checkMoisture()
    digitalWrite(leftLED, LOW);
    digitalWrite(middleLED, HIGH);
    digitalWrite(rightLED, LOW);
-
-   /* don't need to find average because value we get from sensor will be representative
-      of average because water level is continuous
-   */
-   
    if(analogRead(waterInputPin) <= halfSaturation) Serial.println("Needs water");
    else Serial.println("Still moist");
    digitalWrite(middleLED, LOW);
@@ -105,26 +73,26 @@ byte checkMoisture()
 
 byte waitBeforeNextScan()
 {
-   digitalWrite(middleLED, LOW);
-   digitalWrite(rightLED, HIGH);
+    digitalWrite(rightLED, HIGH);
+    uint32_t startTime = millis();
+    int elapsedSecondCount = 0;
+    
+    uint32_t elapsedTime;
 
-   uint32_t startTime = millis();
-   bool wait = true;
-
-   while(wait)
-   {
-      uint32_t eventLength = millis - startTime;
-      // after 1 second has expired
-      if(eventLength % 1000 == 0)
+    do
+    {
+      elapsedTime = millis() - startTime;
+      int elapsedSecond = elapsedTime / 1000;
+  
+      if (elapsedSecond > elapsedSecondCount)
       {
-          Serial.print("Time Passed");  Serial.println((eventLength) / 1000 );
+        Serial.print("Elapsed seconds: ");
+        Serial.println(elapsedSecond);
+        elapsedSecondCount = elapsedSecond;
       }
-
-      if(eventLength == eventInterval) wait = false;
-   }
-   
-   Serial.println("Wait Complete");
-   digitalWrite(rightLED, LOW);
-
-
+    } while (elapsedTime < totalWaitTime);
+    
+     Serial.println("Wait Complete");
+     digitalWrite(rightLED, LOW);
+  
 }
