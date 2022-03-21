@@ -78,17 +78,27 @@ byte motor()
 }
 
 
+byte scrollText()
+{
+   for(int PositionCount=0; PositionCount<16; PositionCount++)
+   {
+        lcd.autoscroll(); //builtin command to scroll right the text
+        delay(1000);//delay of 150 msec
+        Serial.println("Testing Scrolling Text");
+   }
+}
+
+
 byte checkMoisture()
 {
-   if(analogRead(waterInputPin) <= halfSaturation)
+   while(analogRead(waterInputPin) <= halfSaturation)
    {
       Serial.println("Needs water");
       motor();
    }
-   else
-   {
-      Serial.println("Still moist");
-   }
+   
+   Serial.println("Still moist");
+   
 }
 
 byte waitBeforeNextScan()
@@ -113,14 +123,4 @@ byte waitBeforeNextScan()
     
      Serial.println("Wait Complete");
   
-}
-
-byte scrollText()
-{
-   for(int PositionCount=0; PositionCount<16; PositionCount++)
-   {
-        lcd.autoscroll(); //builtin command to scroll right the text
-        delay(1000);//delay of 150 msec
-        Serial.println("Testing Scrolling Text");
-   }
 }
